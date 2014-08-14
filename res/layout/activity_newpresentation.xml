@@ -16,17 +16,27 @@
         android:layout_alignParentTop="true"
         android:orientation="vertical" >
         
+        
+         <TextView
+          android:id="@+id/textViewReadTag"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="Welcher Raum soll bearbeitet werden?" 
+          android:layout_marginBottom="20px"
+          />
+        
         <Spinner
       android:id="@+id/spinnerRooms"
       android:layout_width="fill_parent"
-      android:layout_height="wrap_content" />
+      android:layout_height="wrap_content"
+      android:layout_marginBottom="100px" />
 
 
         <Button
             android:id="@+id/buttonCreatePresentation"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="Vortrag anlegen" />
+            android:text="Neuen Vortrag anlegen" />
         
         
          <ListView
