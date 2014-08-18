@@ -3,8 +3,9 @@ package de.smbsolutions.tagungAdmin.Database;
 import java.util.ArrayList;
 import java.util.List;
 
-import android.content.Context;
-import android.graphics.YuvImage;
+import android.R.array;
+import android.app.Activity;
+import android.widget.TextView;
 
 import com.parse.FindCallback;
 import com.parse.Parse;
@@ -13,17 +14,26 @@ import com.parse.ParseObject;
 import com.parse.ParseQuery;
 import com.parse.SaveCallback;
 
+import de.smbsolutions.tagungAdmin.R;
 
+/**
+ * Diese Klasse repräsentiert die Parse Online Datenbank
+ * 
+ * @author Mirko
+ * 
+ */
 public class Database {
 
 	public ArrayList<Room> arrayListRooms;
 	public ArrayList<Presentation> arrayListPresentation;
+	public ArrayList<Subscriber> arrayListSubscriber;
 	private static Database db_object = null;
+	private Activity context;
 
 	/**
 	 * Liefert die Instanz zurück (Singleton)
 	 */
-	public static Database getInstance(Context context) {
+	public static Database getInstance(Activity context) {
 		if (db_object == null)
 			db_object = new Database(context);
 		return db_object;
@@ -32,28 +42,31 @@ public class Database {
 	/**
 	 * Privater Konstruktor -> nur ein Singleton kann erzeugt werden
 	 */
-	private Database(Context context) {
+	private Database(Activity context) {
+
+		this.context = context;
 
 		Parse.initialize(context, "TKlxT9rAYg75PYw19N7zsTqDPkggZuv8HddJdLqR",
 				"ekGUAASuWTKDasYzVBWImO9IbFBE38e08WjjkTqx");
 
 		arrayListRooms = new ArrayList<Room>();
 		arrayListPresentation = new ArrayList<Presentation>();
+		arrayListSubscriber = new ArrayList<Subscriber>();
 
+		// Alle Tabellen werden ausgelesen und in den eben erstellen Arrays
+		// gespeichert
 		loadRooms();
 		loadPresentations();
+		loadSubscribers();
 
 	}
 
 	private void loadRooms() {
 
 		// Bisherige DB Einträge werden geladen
-
-		// //Get values of DB
 		ParseQuery<ParseObject> query = ParseQuery.getQuery("Rooms");
 
 		// Einträge werden gesucht
-
 		query.findInBackground(new FindCallback<ParseObject>() {
 
 			@Override
@@ -65,6 +78,9 @@ public class Database {
 
 				}
 
+				// Die MainActivity wird informiert, dass das Laden fertig ist
+				notifyActivityOfFinish();
+
 			}
 		});
 
@@ -73,12 +89,9 @@ public class Database {
 	private void loadPresentations() {
 
 		// Bisherige DB Einträge werden geladen
-
-		// //Get values of DB
 		ParseQuery<ParseObject> query = ParseQuery.getQuery("Presentations");
 
 		// Einträge werden gesucht
-
 		query.findInBackground(new FindCallback<ParseObject>() {
 
 			@Override
@@ -106,6 +119,40 @@ public class Database {
 
 	}
 
+	public void loadSubscribers() {
+		// Bisherige DB Einträge werden geladen
+		ParseQuery<ParseObject> query = ParseQuery.getQuery("Subscribers");
+
+		// Einträge werden gesucht
+		query.findInBackground(new FindCallback<ParseObject>() {
+
+			@Override
+			public void done(List<ParseObject> objects, ParseException e) {
+
+				if (e == null) {
+					for (ParseObject resultEntry : objects) {
+
+						Subscriber subscriber = new Subscriber(
+								(String) resultEntry.getObjectId(),
+								(String) resultEntry.get("mail"),
+								(String) resultEntry.get("presentation_id"));
+
+						arrayListSubscriber.add(subscriber);
+
+					}
+				}
+
+			}
+		});
+
+	}
+
+	/**
+	 * Liefert zu einer Raum-ID die Liste aller Präsentationen zurück
+	 * 
+	 * @param roomID
+	 * @return
+	 */
 	public ArrayList<Presentation> getPresentations(String roomID) {
 
 		ArrayList<Presentation> presentationsForRoom = new ArrayList<Presentation>();
@@ -125,20 +172,44 @@ public class Database {
 
 	}
 
+	/**
+	 * Liefer zur Präsentations ID alle vorhandenen Subscriber zurück
+	 * 
+	 * @param presentationId
+	 * @return
+	 */
+	public ArrayList<Subscriber> getSubscribers(String presentationId) {
+
+		ArrayList<Subscriber> subscribersForPresentation = new ArrayList<Subscriber>();
+
+		for (Subscriber subscriber : arrayListSubscriber) {
+
+			if (subscriber.getPresentation_id() != null) {
+				if (subscriber.getPresentation_id().equals(presentationId)) {
+
+					subscribersForPresentation.add(subscriber);
+				}
+			}
+
+		}
+
+		return subscribersForPresentation;
+
+	}
+
 	public ArrayList<Room> getRooms() {
 
 		return arrayListRooms;
 	}
 
 	public void createRoom(String name) {
-		// Saving a room
+
 		ParseObject roomObject = new ParseObject("Rooms");
 		roomObject.put("name", name);
-		
-		//Davor schonmal speichern, damit es im listview aktuell ist!
+
+		// Davor schonmal speichern, damit es im listview aktuell ist!
 		arrayListRooms.add(new Room(null, name));
-		
-		
+
 		roomObject.saveInBackground(new SaveCallback() {
 			@Override
 			public void done(ParseException e) {
@@ -152,11 +223,9 @@ public class Database {
 			}
 		});
 	}
-	
-	
 
 	public void createPresentation(final Presentation presentation) {
-		// Saving a room
+
 		ParseObject roomObject = new ParseObject("Presentations");
 		roomObject.put("Referent", presentation.getReferent());
 		roomObject.put("date", presentation.getDate());
@@ -164,9 +233,8 @@ public class Database {
 		roomObject.put("time_from", presentation.getTime_from());
 		roomObject.put("time_to", presentation.getTime_to());
 		roomObject.put("topic", presentation.getTopic());
-		
-		
-		//Davor schonmal speichern, damit es im listview aktuell ist!
+
+		// Davor schonmal speichern, damit es im listview aktuell ist!
 		arrayListPresentation.add(presentation);
 
 		roomObject.saveInBackground(new SaveCallback() {
@@ -174,10 +242,9 @@ public class Database {
 			@Override
 			public void done(ParseException e) {
 				if (e == null) {
-					
-			
 
-					// Daten müssen aber zusätzlich neu geladen werden, da die objectID nicht bekannt ist
+					// Daten müssen aber zusätzlich neu geladen werden, da die
+					// objectID sonst nicht bekannt ist
 					arrayListPresentation.clear();
 					loadPresentations();
 				}
@@ -186,4 +253,42 @@ public class Database {
 		});
 	}
 
+	public void notifyActivityOfFinish() {
+
+		// Alle Buttons werden klickbar gemacht
+		context.findViewById(R.id.buttonNewRoom).setEnabled(true);
+		context.findViewById(R.id.buttonNewPresentation).setEnabled(true);
+		context.findViewById(R.id.buttonReadTag).setEnabled(true);
+		context.findViewById(R.id.buttonShowSubscriber).setEnabled(true);
+
+		// Und der Hinweistext entfernt
+		TextView text = (TextView) context.findViewById(R.id.textWait);
+		text.setText("");
+
+	}
+
+	public void deleteRoom(int id) {
+
+		ParseQuery<ParseObject> query = ParseQuery.getQuery("Rooms");
+		List<ParseObject> scoreList = null;
+
+		// Einträge werden gesucht
+		try {
+			scoreList = query.find();
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+
+		try {
+			scoreList.get(id).delete();
+			arrayListRooms.remove(id);
+
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		
+		
+		
+
+	}
 }

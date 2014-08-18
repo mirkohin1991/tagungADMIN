@@ -6,7 +6,10 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    tools:context=".MainActivity" >
+    tools:context=".MainActivity"
+    android:background="#ffffff" >
+    
+      
 
     <LinearLayout
         android:id="@+id/linearLayoutMainActivity"
@@ -14,7 +17,16 @@
         android:layout_height="fill_parent"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
-        android:orientation="vertical" >
+        android:orientation="vertical" 
+        android:gravity="center">
+        
+        
+       <ImageView
+        android:id="@+id/imageView1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/dhbw_logo"
+        android:layout_marginBottom="50dp" />
 
         <Button
             android:id="@+id/buttonNewRoom"
@@ -26,13 +38,30 @@
             android:id="@+id/buttonNewPresentation"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="Neue Präsentation anlegen" />
+            android:text="Neuen Vortrag anlegen" />
+        
+        <Button
+            android:id="@+id/buttonShowSubscriber"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:text="E-Mail-Verteiler einsehen" 
+            android:layout_marginBottom="10dp"/>
         
          <Button
             android:id="@+id/buttonReadTag"
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="Tag Inhalt prüfen" />
+            android:text="Tag Inhalt prüfen" 
+            android:layout_marginBottom="20dp"/>
+         
+         <TextView android:id="@+id/textWait"
+             android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textColor="#FF0000"
+            android:text="Einträge werden aus der Datenbank geladen"
+            android:textSize="20dp"/>
+         
     </LinearLayout>
 
 </RelativeLayout>
